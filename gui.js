@@ -1,15 +1,15 @@
-(function(Scratch) {
-  'use strict';
+(function (Scratch) {
+  "use strict";
 
   let links = {};
-  
-  let buttons = [{text: "My Button", value: "My-Button"}];
+
+  let buttons = [{ text: "My Button", value: "My-Button" }];
 
   let guiValues = {};
 
   const style = document.createElement("style");
 
-    style.innerHTML = `
+  style.innerHTML = `
    
 html
     {
@@ -270,432 +270,415 @@ html
     white-space: pre;
    }
 `;
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 
-    let collapsed = Object.create(null);
-        function collapse(id)
-        {
-            if (collapsed[id] == false)
-            {
-                document.getElementById(id + "-column").style.display = "none";
-                document.getElementById(id + "-wrapper").style.height = "20px";
-                document.getElementById(id + "-wrapper").style.resize = "none";
-                document.getElementById(id + "-plus").style.stroke = "white";
-                collapsed[id] = true;
-            } else
-            {
-                document.getElementById(id + "-column").style.display = "flex";
-                document.getElementById(id + "-wrapper").style.height = "250px";
-                document.getElementById(id + "-wrapper").style.resize = "both";
-                document.getElementById(id + "-plus").style.stroke = "none";
-                collapsed[id] = false;
-            }
-        }
+  let collapsed = Object.create(null);
+  function collapse(id) {
+    if (collapsed[id] == false) {
+      document.getElementById(id + "-column").style.display = "none";
+      document.getElementById(id + "-wrapper").style.height = "20px";
+      document.getElementById(id + "-wrapper").style.resize = "none";
+      document.getElementById(id + "-plus").style.stroke = "white";
+      collapsed[id] = true;
+    } else {
+      document.getElementById(id + "-column").style.display = "flex";
+      document.getElementById(id + "-wrapper").style.height = "250px";
+      document.getElementById(id + "-wrapper").style.resize = "both";
+      document.getElementById(id + "-plus").style.stroke = "none";
+      collapsed[id] = false;
+    }
+  }
 
-        function updateVal()
-        {
-            document.getElementById("sliderVal").innerHTML = document.getElementById("slider").value;
-        }
+  function updateVal() {
+    document.getElementById("sliderVal").innerHTML =
+      document.getElementById("slider").value;
+  }
 
-        function resetPos()
-        {
-            document.getElementById("x-input").value = 0;
-            document.getElementById("y-input").value = 0;
-            document.getElementById("z-input").value = 0;
-        }
+  function resetPos() {
+    document.getElementById("x-input").value = 0;
+    document.getElementById("y-input").value = 0;
+    document.getElementById("z-input").value = 0;
+  }
 
-        let main = document.createElement("div");
-        main.style.userSelect = "none";
+  let main = document.createElement("div");
+  main.style.userSelect = "none";
 
+  document.body.append(main);
 
-        
-          document.body.append(main);
+  //dragElement(document.getElementById("wrapper"));
 
-//dragElement(document.getElementById("wrapper"));
-
-function linkVariable(variable, func, gui)
-  {
-    let varObject = Scratch.vm.runtime.getTargetForStage().lookupVariableByNameAndType(variable, "");
-    if(varObject)
-    {
-      if(!links[variable])
-      {
+  function linkVariable(variable, func, gui) {
+    let varObject = Scratch.vm.runtime
+      .getTargetForStage()
+      .lookupVariableByNameAndType(variable, "");
+    if (varObject) {
+      if (!links[variable]) {
         links[variable] = {};
         links[variable].value = 0;
         links[variable].functions = [];
       }
       links[variable].value = func(varObject.value);
-        links[variable].functions.push(func);
-        varObject.__defineSetter__("value", function(val){
-          for(let t = 0; t < 2; t++)
-          {
-            for(let i = 0; i < links[variable].functions.length; i++)
-            {
-              val = links[variable].functions[i](val);
-            }
+      links[variable].functions.push(func);
+      varObject.__defineSetter__("value", function (val) {
+        for (let t = 0; t < 2; t++) {
+          for (let i = 0; i < links[variable].functions.length; i++) {
+            val = links[variable].functions[i](val);
           }
-          links[variable].value = val;
+        }
+        links[variable].value = val;
       });
-        varObject.__defineGetter__("value", function(){
-          return(links[variable].value);
-        })
-      guiValues[gui][guiValues[gui].length - 1].push({"var": variable, "index": links[variable].functions.length - 1});
+      varObject.__defineGetter__("value", function () {
+        return links[variable].value;
+      });
+      guiValues[gui][guiValues[gui].length - 1].push({
+        var: variable,
+        index: links[variable].functions.length - 1,
+      });
     }
-    return(null);
+    return null;
   }
 
-function unlinkVariable(variable, index, gui)
-{
-  links[variable].functions.splice(index, 1);
-  for(let i = index + 1; i < guiValues[gui].length - index; i++)
-  {
-    for(let t = 0; t < guiValues[gui][i].length; t++)
-    {
-      if(guiValues[gui][i][t].var == variable)
-      {
-        guiValues[gui][i][t].index -= 1;
+  function unlinkVariable(variable, index, gui) {
+    links[variable].functions.splice(index, 1);
+    for (let i = index + 1; i < guiValues[gui].length - index; i++) {
+      for (let t = 0; t < guiValues[gui][i].length; t++) {
+        if (guiValues[gui][i][t].var == variable) {
+          guiValues[gui][i][t].index -= 1;
+        }
       }
     }
   }
-}
 
-function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-  if (document.getElementById(elmnt.id + "header")) {
-    // if present, the header is where you move the DIV from:
-    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-  } else {
-    // otherwise, move the DIV from anywhere inside the DIV:
-    elmnt.onmousedown = dragMouseDown;
-  }
+  function dragElement(elmnt) {
+    var pos1 = 0,
+      pos2 = 0,
+      pos3 = 0,
+      pos4 = 0;
+    if (document.getElementById(elmnt.id + "header")) {
+      // if present, the header is where you move the DIV from:
+      document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+    } else {
+      // otherwise, move the DIV from anywhere inside the DIV:
+      elmnt.onmousedown = dragMouseDown;
+    }
 
-  function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    // call a function whenever the cursor moves:
-    document.onmousemove = elementDrag;
-  }
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
 
-  function elementDrag(e) {
-    e = e || window.event;
-    e.preventDefault();
-    // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      elmnt.style.top = elmnt.offsetTop - pos2 + "px";
+      elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
 
-    let tempBounding = elmnt.getBoundingClientRect();
+      let tempBounding = elmnt.getBoundingClientRect();
 
-    if(parseInt(elmnt.style.top, 10) < 0)
-      {
+      if (parseInt(elmnt.style.top, 10) < 0) {
         elmnt.style.top = "0px";
       }
 
-    if(parseInt(elmnt.style.top, 10) > window.innerHeight - parseInt(tempBounding.height, 10))
-      {
-        elmnt.style.top = window.innerHeight - parseInt(tempBounding.height, 10) + "px";
+      if (
+        parseInt(elmnt.style.top, 10) >
+        window.innerHeight - parseInt(tempBounding.height, 10)
+      ) {
+        elmnt.style.top =
+          window.innerHeight - parseInt(tempBounding.height, 10) + "px";
       }
 
-    if(parseInt(elmnt.style.left, 10) < 0)
-      {
+      if (parseInt(elmnt.style.left, 10) < 0) {
         elmnt.style.left = "0px";
       }
 
-    if(parseInt(elmnt.style.left, 10) > window.innerWidth - parseInt(tempBounding.width, 10))
-      {
-        elmnt.style.left = window.innerWidth - parseInt(tempBounding.width, 10) + "px";
+      if (
+        parseInt(elmnt.style.left, 10) >
+        window.innerWidth - parseInt(tempBounding.width, 10)
+      ) {
+        elmnt.style.left =
+          window.innerWidth - parseInt(tempBounding.width, 10) + "px";
       }
+    }
 
+    function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+    }
   }
 
-  function closeDragElement() {
-    // stop moving when mouse button is released:
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
-}
-
-  function getRenderText(text, customVar = {"var": null, "value": null})
-  {
+  function getRenderText(text, customVar = { var: null, value: null }) {
     let finalText = text[0].value;
-    for(let i = 1; i < text.length; i++)
-    {
-      if(text[i].type == "var")
-      {
-        if(text[i].value == customVar.var)
-        {
+    for (let i = 1; i < text.length; i++) {
+      if (text[i].type == "var") {
+        if (text[i].value == customVar.var) {
           finalText = finalText + customVar.value;
-        } else
-        {
-          let tempVar = Scratch.vm.runtime.getTargetForStage().lookupVariableByNameAndType(text[i].value, "");
-          if(tempVar)
-          {
+        } else {
+          let tempVar = Scratch.vm.runtime
+            .getTargetForStage()
+            .lookupVariableByNameAndType(text[i].value, "");
+          if (tempVar) {
             finalText = finalText + tempVar.value;
-          } else
-          {
+          } else {
             finalText = finalText + "0";
           }
         }
-      } else
-      {
+      } else {
         finalText = finalText + text[i].value;
       }
     }
-    return(finalText);
+    return finalText;
   }
 
   class gui {
     getInfo() {
       return {
-        id: 'corbnorbsgui',
-        name: Scratch.translate('Corbs GUI'),
+        id: "corbnorbsgui",
+        name: Scratch.translate("Corbs GUI"),
         color1: "#354783",
         color2: "#20385c",
         blocks: [
-        {
-          blockType: Scratch.BlockType.LABEL,
-          text: "gui"
-        },
-        {
-          opcode: 'newGUI',
-          text: 'create gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'removeGUI',
-          text: 'remove gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'clearGUI',
-          text: 'clear gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'showGUI',
-          text: 'show gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'hideGUI',
-          text: 'hide gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          blockType: Scratch.BlockType.LABEL,
-          text: "elements"
-        },
-        {
-          opcode: 'removeElement',
-          text: 'remove element [INDEX] from gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            INDEX: {
-              type: Scratch.ArgumentType.NUMBER,
-              defaultValue: "0"
+          {
+            blockType: Scratch.BlockType.LABEL,
+            text: "gui",
+          },
+          {
+            opcode: "newGUI",
+            text: "create gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'addText',
-          text: 'add text [TEXT] to gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            TEXT: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "my variable has a value of ${my variable}!"
+          },
+          {
+            opcode: "removeGUI",
+            text: "remove gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'addCheckbox',
-          text: 'add checkbox linked to variable [VARIABLE] with label [LABEL] to gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            VARIABLE: {
-              type: Scratch.ArgumentType.STRING,
-              menu: 'variableMenu'
+          },
+          {
+            opcode: "clearGUI",
+            text: "clear gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            LABEL: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "my variable",
+          },
+          {
+            opcode: "showGUI",
+            text: "show gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'addInput',
-          text: 'add input linked to variable [VARIABLE] with label [LABEL] to gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            VARIABLE: {
-              type: Scratch.ArgumentType.STRING,
-              menu: 'variableMenu'
+          },
+          {
+            opcode: "hideGUI",
+            text: "hide gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            LABEL: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "my variable",
+          },
+          {
+            blockType: Scratch.BlockType.LABEL,
+            text: "elements",
+          },
+          {
+            opcode: "removeElement",
+            text: "remove element [INDEX] from gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              INDEX: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: "0",
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: 'addSlider',
-          text: 'add slider linked to variable [VARIABLE] with label [LABEL] and value min [MIN] max [MAX] with width [WIDTH] to gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            VARIABLE: {
-              type: Scratch.ArgumentType.STRING,
-              menu: 'variableMenu'
+          },
+          {
+            opcode: "addText",
+            text: "add text [TEXT] to gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              TEXT: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "my variable has a value of ${my variable}!",
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            LABEL: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "my variable",
+          },
+          {
+            opcode: "addCheckbox",
+            text: "add checkbox linked to variable [VARIABLE] with label [LABEL] to gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              VARIABLE: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "variableMenu",
+              },
+              LABEL: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "my variable",
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            MIN: {
-              type: Scratch.ArgumentType.NUMBER,
-              defaultValue: "0",
+          },
+          {
+            opcode: "addInput",
+            text: "add input linked to variable [VARIABLE] with label [LABEL] to gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              VARIABLE: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "variableMenu",
+              },
+              LABEL: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "my variable",
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            MAX: {
-              type: Scratch.ArgumentType.NUMBER,
-              defaultValue: "100",
+          },
+          {
+            opcode: "addSlider",
+            text: "add slider linked to variable [VARIABLE] with label [LABEL] and value min [MIN] max [MAX] with width [WIDTH] to gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              VARIABLE: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "variableMenu",
+              },
+              LABEL: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "my variable",
+              },
+              MIN: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: "0",
+              },
+              MAX: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: "100",
+              },
+              WIDTH: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 50,
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            WIDTH: {
-              type: Scratch.ArgumentType.NUMBER,
-              defaultValue: 50
+          },
+          {
+            opcode: "addSeparator",
+            text: "add separator to gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: "addSeparator",
-          text: "add separator to gui [ID]",
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          blockType: Scratch.BlockType.LABEL,
-          text: "buttons"
-        },
-        {
-          opcode: 'addButton',
-          text: 'add button with id [BUTTON] and label [LABEL] to gui [ID]',
-          blockType: Scratch.BlockType.COMMAND,
-          arguments: {
-            BUTTON: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My Button"
+          },
+          {
+            blockType: Scratch.BlockType.LABEL,
+            text: "buttons",
+          },
+          {
+            opcode: "addButton",
+            text: "add button with id [BUTTON] and label [LABEL] to gui [ID]",
+            blockType: Scratch.BlockType.COMMAND,
+            arguments: {
+              BUTTON: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My Button",
+              },
+              LABEL: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "Click me",
+              },
+              ID: {
+                type: Scratch.ArgumentType.STRING,
+                defaultValue: "My GUI",
+              },
             },
-            LABEL: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "Click me",
+          },
+          {
+            opcode: "buttonPressed",
+            text: "button [BUTTON] pressed",
+            isEdgeActivated: false,
+            blockType: Scratch.BlockType.EVENT,
+            arguments: {
+              BUTTON: {
+                type: Scratch.ArgumentType.STRING,
+                menu: "buttons",
+              },
             },
-            ID: {
-              type: Scratch.ArgumentType.STRING,
-              defaultValue: "My GUI"
-            }
-          }
-        },
-        {
-          opcode: "buttonPressed",
-          text: "button [BUTTON] pressed",
-          isEdgeActivated: false,
-          blockType: Scratch.BlockType.EVENT,
-          arguments: {
-            BUTTON: {
-              type: Scratch.ArgumentType.STRING,
-              menu: 'buttons'
-            }
-          }
-        }
+          },
         ],
         menus: {
-            variableMenu: {
-              acceptReporters: true,
-              items: "getVariables" 
-            },
-            inputTypes: {
-              acceptReporters: true,
-              items: [
-                "slider",
-                "input",
-                "value",
-                "checkbox"
-              ]
-            },
-            buttons: {
-              acceptReporters: false,
-              items: "getButtons"
-            },
-        }
-      }
+          variableMenu: {
+            acceptReporters: true,
+            items: "getVariables",
+          },
+          inputTypes: {
+            acceptReporters: true,
+            items: ["slider", "input", "value", "checkbox"],
+          },
+          buttons: {
+            acceptReporters: false,
+            items: "getButtons",
+          },
+        },
+      };
     }
 
-    addSeparator(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      if(document.getElementById(args.ID + "-wrapper"))
-      {
+    addSeparator(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      if (document.getElementById(args.ID + "-wrapper")) {
         let holder = document.createElement("span");
         holder.classList.add("GUI-holder");
         holder.style.height = "20px";
@@ -703,67 +686,52 @@ function dragElement(elmnt) {
       }
     }
 
-    getButtons()
-    {
-      return(buttons);
+    getButtons() {
+      return buttons;
     }
 
-    removeGUI(args)
-    {
+    removeGUI(args) {
       let visID = Scratch.Cast.toString(args.ID);
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      if(document.getElementById(args.ID + "-wrapper"))
-        {
-          for(let t = 0; t < guiValues[args.ID].length; t++)
-          {
-            let tempValues = guiValues[args.ID][0];
-            if(tempValues)
-            {
-              for(let i = 0; i < tempValues.length; i++)
-              {
-                unlinkVariable(tempValues[i].var, tempValues[i].index, args.ID);
-              }
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      if (document.getElementById(args.ID + "-wrapper")) {
+        for (let t = 0; t < guiValues[args.ID].length; t++) {
+          let tempValues = guiValues[args.ID][0];
+          if (tempValues) {
+            for (let i = 0; i < tempValues.length; i++) {
+              unlinkVariable(tempValues[i].var, tempValues[i].index, args.ID);
             }
-            guiValues[args.ID].splice(0, 1);
           }
-          main.removeChild(document.getElementById(args.ID + "-wrapper"));
+          guiValues[args.ID].splice(0, 1);
         }
+        main.removeChild(document.getElementById(args.ID + "-wrapper"));
+      }
     }
 
-    clearGUI(args)
-    {
+    clearGUI(args) {
       let visID = Scratch.Cast.toString(args.ID);
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      if(document.getElementById(args.ID + "-wrapper"))
-        {
-          for(let t = 0; t < guiValues[args.ID].length; t++)
-          {
-            let tempValues = guiValues[args.ID][0];
-            if(tempValues)
-            {
-              for(let i = 0; i < tempValues.length; i++)
-              {
-                unlinkVariable(tempValues[i].var, tempValues[i].index, args.ID);
-              }
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      if (document.getElementById(args.ID + "-wrapper")) {
+        for (let t = 0; t < guiValues[args.ID].length; t++) {
+          let tempValues = guiValues[args.ID][0];
+          if (tempValues) {
+            for (let i = 0; i < tempValues.length; i++) {
+              unlinkVariable(tempValues[i].var, tempValues[i].index, args.ID);
             }
-            guiValues[args.ID].splice(0, 1);
           }
-          let elements = document.getElementById(args.ID + "-column");
-          elements.innerHTML = "";
+          guiValues[args.ID].splice(0, 1);
         }
+        let elements = document.getElementById(args.ID + "-column");
+        elements.innerHTML = "";
+      }
     }
 
-    removeElement(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
+    removeElement(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
       args.INDEX = Scratch.Cast.toNumber(args.INDEX);
-      if(document.getElementById(args.ID + "-wrapper") && args.INDEX >= 0)
-      {
+      if (document.getElementById(args.ID + "-wrapper") && args.INDEX >= 0) {
         let tempValues = guiValues[args.ID][args.INDEX];
-        if(tempValues)
-        {
-          for(let i = 0; i < tempValues.length; i++)
-          {
+        if (tempValues) {
+          for (let i = 0; i < tempValues.length; i++) {
             unlinkVariable(tempValues[i].var, tempValues[i].index, args.ID);
             tempValues = guiValues[args.ID][args.INDEX];
           }
@@ -774,15 +742,15 @@ function dragElement(elmnt) {
       }
     }
 
-    addButton(args, util)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      let buttonID = Scratch.Cast.toString(args.BUTTON).split(' ').join('-');
+    addButton(args, util) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      let buttonID = Scratch.Cast.toString(args.BUTTON).split(" ").join("-");
       args.LABEL = Scratch.Cast.toString(args.LABEL);
-      if(document.getElementById(args.ID + "-wrapper"))
-      {
+      if (document.getElementById(args.ID + "-wrapper")) {
         guiValues[args.ID].push([]);
-        if(!buttons.some(e => e.value === buttonID)) {buttons.push({text: args.BUTTON, value: buttonID})}
+        if (!buttons.some((e) => e.value === buttonID)) {
+          buttons.push({ text: args.BUTTON, value: buttonID });
+        }
         let holder = document.createElement("span");
         holder.classList.add("GUI-holder");
         let button = document.createElement("button");
@@ -790,30 +758,28 @@ function dragElement(elmnt) {
         button.classList.add("GUI-text");
         button.style.fontSize = "14px";
         button.innerText = args.LABEL;
-        button.onclick = function()
-        {
-          util.startHats('corbnorbsgui_buttonPressed', {
-            BUTTON: buttonID
+        button.onclick = function () {
+          util.startHats("corbnorbsgui_buttonPressed", {
+            BUTTON: buttonID,
           });
-      
         };
         holder.appendChild(button);
         document.getElementById(args.ID + "-column").appendChild(holder);
       }
     }
 
-    addSlider(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
+    addSlider(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
       let variable = Scratch.Cast.toString(args.VARIABLE);
       args.LABEL = Scratch.Cast.toString(args.LABEL);
       args.MIN = Scratch.Cast.toNumber(args.MIN);
       args.MAX = Scratch.Cast.toNumber(args.MAX);
       args.WIDTH = Scratch.Cast.toNumber(args.WIDTH);
-      if(document.getElementById(args.ID + "-wrapper"))
-      {
+      if (document.getElementById(args.ID + "-wrapper")) {
         guiValues[args.ID].push([]);
-        let variableObject = Scratch.vm.runtime.getTargetForStage().lookupVariableByNameAndType(variable, "");
+        let variableObject = Scratch.vm.runtime
+          .getTargetForStage()
+          .lookupVariableByNameAndType(variable, "");
         let holder = document.createElement("span");
         holder.classList.add("GUI-holder");
         let wrapper = document.createElement("div");
@@ -840,25 +806,31 @@ function dragElement(elmnt) {
         label.innerText = args.LABEL;
         holder.appendChild(label);
         document.getElementById(args.ID + "-column").appendChild(holder);
-        let link = linkVariable(variable, function(v){
-          text.innerText = v;
-          slider.value = v;
-          return v;
-        }, args.ID);
-        slider.oninput = function(){variableObject.value = slider.value};
+        let link = linkVariable(
+          variable,
+          function (v) {
+            text.innerText = v;
+            slider.value = v;
+            return v;
+          },
+          args.ID,
+        );
+        slider.oninput = function () {
+          variableObject.value = slider.value;
+        };
       }
     }
 
-    addInput(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
+    addInput(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
       let variable = Scratch.Cast.toString(args.VARIABLE);
       args.LABEL = Scratch.Cast.toString(args.LABEL);
       args.WIDTH = Scratch.Cast.toNumber(args.WIDTH);
-      if(document.getElementById(args.ID + "-wrapper"))
-      {
+      if (document.getElementById(args.ID + "-wrapper")) {
         guiValues[args.ID].push([]);
-        let variableObject = Scratch.vm.runtime.getTargetForStage().lookupVariableByNameAndType(variable, "");
+        let variableObject = Scratch.vm.runtime
+          .getTargetForStage()
+          .lookupVariableByNameAndType(variable, "");
         let holder = document.createElement("span");
         holder.classList.add("GUI-holder");
         let sizer = document.createElement("span");
@@ -881,32 +853,35 @@ function dragElement(elmnt) {
         label.innerText = args.LABEL;
         holder.appendChild(label);
         document.getElementById(args.ID + "-column").appendChild(holder);
-        linkVariable(variable, function(v){
-          if(!(document.activeElement == input))
-          {
-            input.value = v;
-            sizer.textContent = input.value;
-            input.style.width = sizer.offsetWidth + "px";
-          }
-          return v;
-        }, args.ID);
+        linkVariable(
+          variable,
+          function (v) {
+            if (!(document.activeElement == input)) {
+              input.value = v;
+              sizer.textContent = input.value;
+              input.style.width = sizer.offsetWidth + "px";
+            }
+            return v;
+          },
+          args.ID,
+        );
         sizer.textContent = input.value;
         input.style.width = sizer.offsetWidth + "px";
-        input.oninput = function(){
+        input.oninput = function () {
           variableObject.value = input.value;
         };
       }
     }
 
-    addCheckbox(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
+    addCheckbox(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
       let variable = Scratch.Cast.toString(args.VARIABLE);
       args.LABEL = Scratch.Cast.toString(args.LABEL);
-      if(document.getElementById(args.ID + "-wrapper"))
-      {
+      if (document.getElementById(args.ID + "-wrapper")) {
         guiValues[args.ID].push([]);
-        let variableObject = Scratch.vm.runtime.getTargetForStage().lookupVariableByNameAndType(variable, "");
+        let variableObject = Scratch.vm.runtime
+          .getTargetForStage()
+          .lookupVariableByNameAndType(variable, "");
         variableObject.value = false;
         let holder = document.createElement("span");
         holder.classList.add("GUI-holder");
@@ -927,79 +902,78 @@ function dragElement(elmnt) {
         container.appendChild(checkbox);
         holder.appendChild(container);
         document.getElementById(args.ID + "-column").appendChild(holder);
-        linkVariable(variable, function(v){
-            if (v == "true" || v == 1)
-            {
+        linkVariable(
+          variable,
+          function (v) {
+            if (v == "true" || v == 1) {
               input.checked = true;
               return true;
-            } else
-            {
+            } else {
               input.checked = false;
               return false;
             }
-          }, args.ID);
-        input.onchange = function(){variableObject.value = input.checked};
+          },
+          args.ID,
+        );
+        input.onchange = function () {
+          variableObject.value = input.checked;
+        };
       }
     }
 
-    showGUI(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      if(document.getElementById(args.ID + "-wrapper"))
-        {
+    showGUI(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      if (document.getElementById(args.ID + "-wrapper")) {
         document.getElementById(args.ID + "-wrapper").style.display = "flex";
-        }
+      }
     }
 
-    hideGUI(args)
-    {
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      if(document.getElementById(args.ID + "-wrapper"))
-        {
+    hideGUI(args) {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      if (document.getElementById(args.ID + "-wrapper")) {
         document.getElementById(args.ID + "-wrapper").style.display = "none";
-        }
+      }
     }
 
-    addText(args)
-    {
+    addText(args) {
       args.TEXT = Scratch.Cast.toString(args.TEXT);
-      args.ID = Scratch.Cast.toString(args.ID).split(' ').join('-');
-      if(document.getElementById(args.ID + "-wrapper"))
-      {
+      args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
+      if (document.getElementById(args.ID + "-wrapper")) {
         guiValues[args.ID].push([]);
         let holder = document.createElement("span");
         holder.classList.add("GUI-holder");
         let text = document.createElement("p");
         text.classList.add("GUI-text");
-        if(args.TEXT.includes("${"))
-        {
+        if (args.TEXT.includes("${")) {
           let tempText = args.TEXT;
           tempText = tempText.split("${");
-          let splitVars = [{"type": "text", "value": tempText[0]}];
+          let splitVars = [{ type: "text", value: tempText[0] }];
           let vars = [];
-          for(let i = 1; i < tempText.length; i++)
-          {
-            if(tempText[i].includes("}"))
-            {
-              let tempSplit = tempText[i].split("}")
+          for (let i = 1; i < tempText.length; i++) {
+            if (tempText[i].includes("}")) {
+              let tempSplit = tempText[i].split("}");
               vars.push(tempSplit[0]);
-              splitVars.push({"type": "var", "value": tempSplit[0]});
-              splitVars.push({"type": "text", "value": tempSplit[1]});
-            } else
-            {
-              splitVars.push({"type": "text", "value": "${" + tempText[i]})
+              splitVars.push({ type: "var", value: tempSplit[0] });
+              splitVars.push({ type: "text", value: tempSplit[1] });
+            } else {
+              splitVars.push({ type: "text", value: "${" + tempText[i] });
             }
           }
           text.innerText = getRenderText(splitVars);
-          for(let i = 0; i < vars.length; i++)
-          {
-            linkVariable(vars[i], function(v){
-              text.innerText = getRenderText(splitVars, {"var": vars[i], "value": v});
-              return v;
-            }, args.ID);
+          for (let i = 0; i < vars.length; i++) {
+            linkVariable(
+              vars[i],
+              function (v) {
+                text.innerText = getRenderText(splitVars, {
+                  var: vars[i],
+                  value: v,
+                });
+                return v;
+              },
+              args.ID,
+            );
           }
-        } else
-        {
+        } else {
           text.innerText = args.TEXT;
         }
         holder.appendChild(text);
@@ -1007,12 +981,10 @@ function dragElement(elmnt) {
       }
     }
 
-    newGUI(args)
-    {
+    newGUI(args) {
       let visID = Scratch.Cast.toString(args.ID);
-      args.ID = visID.split(' ').join('-');
-      if(!document.getElementById(args.ID + "-wrapper"))
-      {
+      args.ID = visID.split(" ").join("-");
+      if (!document.getElementById(args.ID + "-wrapper")) {
         guiValues[args.ID] = [];
         let holder = document.createElement("div");
         holder.id = args.ID + "-wrapper";
@@ -1030,23 +1002,34 @@ function dragElement(elmnt) {
         button.classList.add("GUI-collapse");
         button.classList.add("GUI-text");
         collapsed[args.ID] = false;
-        button.onclick = function(){collapse(args.ID)};
-        let close = document.createElementNS('http://www.w3.org/2000/svg', "svg");
+        button.onclick = function () {
+          collapse(args.ID);
+        };
+        let close = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg",
+        );
         close.classList.add("GUI-svg");
-        let line1 = document.createElementNS('http://www.w3.org/2000/svg', "line");
-        line1.setAttribute('x1','1');
-        line1.setAttribute('y1','5');
-        line1.setAttribute('x2','9');
-        line1.setAttribute('y2','5');
+        let line1 = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line",
+        );
+        line1.setAttribute("x1", "1");
+        line1.setAttribute("y1", "5");
+        line1.setAttribute("x2", "9");
+        line1.setAttribute("y2", "5");
         line1.style.stroke = "white";
         line1.style.strokeWidth = "2px";
         line1.style.strokeLinecap = "round";
         close.appendChild(line1);
-        let line2 = document.createElementNS('http://www.w3.org/2000/svg', "line");
-        line2.setAttribute('x1','5');
-        line2.setAttribute('y1','1');
-        line2.setAttribute('x2','5');
-        line2.setAttribute('y2','9');
+        let line2 = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "line",
+        );
+        line2.setAttribute("x1", "5");
+        line2.setAttribute("y1", "1");
+        line2.setAttribute("x2", "5");
+        line2.setAttribute("y2", "9");
         line2.style.stroke = "white";
         line2.style.strokeWidth = "2px";
         line2.id = args.ID + "-plus";
@@ -1064,19 +1047,21 @@ function dragElement(elmnt) {
         holder.appendChild(wrapper);
         main.appendChild(holder);
         dragElement(document.getElementById(args.ID + "-wrapper"));
+      }
     }
-  }
 
-  //function from SharkPool's "Variables Expanded" extension
-    getVariables()
-    {
-      const globalVars = Object.values(Scratch.vm.runtime.getTargetForStage().variables).filter((x) => x.type == "");
-      const localVars = Object.values(Scratch.vm.editingTarget.variables).filter((x) => x.type == "");
+    //function from SharkPool's "Variables Expanded" extension
+    getVariables() {
+      const globalVars = Object.values(
+        Scratch.vm.runtime.getTargetForStage().variables,
+      ).filter((x) => x.type == "");
+      const localVars = Object.values(
+        Scratch.vm.editingTarget.variables,
+      ).filter((x) => x.type == "");
       const uniqueVars = [...new Set([...globalVars, ...localVars])];
       if (uniqueVars.length === 0) return ["make a variable"];
-      return uniqueVars.map((i) => (Scratch.Cast.toString(i.name)));
+      return uniqueVars.map((i) => Scratch.Cast.toString(i.name));
     }
-
   }
 
   Scratch.extensions.register(new gui());
