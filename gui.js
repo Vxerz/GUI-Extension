@@ -305,8 +305,6 @@ html
 
   document.body.append(main);
 
-  //dragElement(document.getElementById("wrapper"));
-
   function linkVariable(variable, func, gui) {
     let varObject = Scratch.vm.runtime
       .getTargetForStage()
@@ -355,33 +353,27 @@ html
       pos3 = 0,
       pos4 = 0;
     if (document.getElementById(elmnt.id + "header")) {
-      // if present, the header is where you move the DIV from:
       document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
     } else {
-      // otherwise, move the DIV from anywhere inside the DIV:
       elmnt.onmousedown = dragMouseDown;
     }
 
     function dragMouseDown(e) {
       e = e || window.event;
       e.preventDefault();
-      // get the mouse cursor position at startup:
       pos3 = e.clientX;
       pos4 = e.clientY;
       document.onmouseup = closeDragElement;
-      // call a function whenever the cursor moves:
       document.onmousemove = elementDrag;
     }
 
     function elementDrag(e) {
       e = e || window.event;
       e.preventDefault();
-      // calculate the new cursor position:
       pos1 = pos3 - e.clientX;
       pos2 = pos4 - e.clientY;
       pos3 = e.clientX;
       pos4 = e.clientY;
-      // set the element's new position:
       elmnt.style.top = elmnt.offsetTop - pos2 + "px";
       elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
 
@@ -413,7 +405,6 @@ html
     }
 
     function closeDragElement() {
-      // stop moving when mouse button is released:
       document.onmouseup = null;
       document.onmousemove = null;
     }
@@ -691,7 +682,6 @@ html
     }
 
     removeGUI(args) {
-      let visID = Scratch.Cast.toString(args.ID);
       args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
       if (document.getElementById(args.ID + "-wrapper")) {
         for (let t = 0; t < guiValues[args.ID].length; t++) {
@@ -708,7 +698,6 @@ html
     }
 
     clearGUI(args) {
-      let visID = Scratch.Cast.toString(args.ID);
       args.ID = Scratch.Cast.toString(args.ID).split(" ").join("-");
       if (document.getElementById(args.ID + "-wrapper")) {
         for (let t = 0; t < guiValues[args.ID].length; t++) {
@@ -1049,8 +1038,6 @@ html
         dragElement(document.getElementById(args.ID + "-wrapper"));
       }
     }
-
-    //function from SharkPool's "Variables Expanded" extension
     getVariables() {
       const globalVars = Object.values(
         Scratch.vm.runtime.getTargetForStage().variables,
